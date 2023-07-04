@@ -41,7 +41,8 @@ public class authController {
                     HttpStatus.UNAUTHORIZED
             );
         }else
-            if (response.equals("-1")){
+            if (response.equals("" +
+                    "")){
                 return new ResponseEntity<>(
                         "Vous n'avez pas encore vérifié votre email",
                         HttpStatus.UNAUTHORIZED
