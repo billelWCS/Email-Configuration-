@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Transactional
 @Service
@@ -47,10 +48,17 @@ public class UserImplem implements UserService {
         String password = user.getPassword();
         String passwordEncoded = this.passwordEncoder.encode(password);
         user.setPassword(passwordEncoded);
+        Random random = new Random();
+        int code = random.nextInt(1000,10000);
+        user.setVerificationEmailCode(
+                code
+        );
+
         emailService.sendEmail(
                 user.getEmail(),
-                "Test",
-                "Test"
+                "Verification de l'adresse email",
+                "Voilà le code de vérification de votre email : " +
+                        code
         );
         return userRepository.save(user);
     }
@@ -68,22 +76,44 @@ public class UserImplem implements UserService {
     public String login(String email, String password) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent()){
-            authenticationManager
-                    .authenticate(
-                            new UsernamePasswordAuthenticationToken(
-                                    email,
-                                    password
-                            )
-                    );
-            return jwtService.generateToken(user.get());
+            if (user.get().isEmailVerified()){
+                authenticationManager
+                        .authenticate(
+                                new UsernamePasswordAuthenticationToken(
+                                        email,
+                                        password
+                                )
+                        );
+                return jwtService.generateToken(user.get());
+            }
+            return "-1";
         }else {
             return null;
         }
-
     }
 
     @Override
     public List<User> getAllUser (){
         return userRepository.findAll();
+    }
+
+    @Override
+    public boolean emailConfirmation(String email, int code) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isPresent()){
+            int codeUser = user.get().getVerificationEmailCode();
+            System.out.println(code);
+            System.out.println(codeUser);
+            if(code == codeUser){
+                user.get().setEmailVerified(true);
+                return true;
+            }
+
+            else
+                return false;
+        }
+        else {
+            return false;
+        }
     }
 }

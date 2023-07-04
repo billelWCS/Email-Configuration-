@@ -12,4 +12,6 @@ public interface UserService {
 
     String login (String email, String password);
     List<User> getAllUser();
+
+    boolean emailConfirmation(String email, int code);
 }

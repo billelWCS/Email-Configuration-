@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -31,9 +33,31 @@ public class authController {
     }
 
     @PostMapping("/login")
-    String login(@RequestBody Map<String, String> form){
-//        return form.get("email") + form.get("password");
-        return userService.login(form.get("email"), form.get("password"));
+    ResponseEntity<String> login(@RequestBody Map<String, String> form){
+        String response = userService.login(form.get("email"), form.get("password"));
+        if (response == null) {
+            return new ResponseEntity<>(
+                    "Email ou le mot de passe sont incorrects",
+                    HttpStatus.UNAUTHORIZED
+            );
+        }else
+            if (response.equals("-1")){
+                return new ResponseEntity<>(
+                        "Vous n'avez pas encore vérifié votre email",
+                        HttpStatus.UNAUTHORIZED
+                );
+            }else{
+                return new ResponseEntity<>(
+                        response,
+                        HttpStatus.OK
+                );
+            }
+
+    }
+
+    @PostMapping("email-confirmation/{email}")
+    boolean emailConfirmation(@PathVariable String email, @RequestBody Map<String, Integer> request){
+        return userService.emailConfirmation(email, request.get("code"));
     }
 
 }
