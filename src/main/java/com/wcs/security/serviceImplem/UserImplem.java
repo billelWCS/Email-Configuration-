@@ -5,6 +5,7 @@ import com.wcs.security.models.Role;
 import com.wcs.security.models.User;
 import com.wcs.security.repositories.RoleRepository;
 import com.wcs.security.repositories.UserRepository;
+import com.wcs.security.services.EmailService;
 import com.wcs.security.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,9 @@ public class UserImplem implements UserService {
     RoleRepository roleRepository;
 
     @Autowired
+    EmailService emailService;
+
+    @Autowired
     JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -43,6 +47,11 @@ public class UserImplem implements UserService {
         String password = user.getPassword();
         String passwordEncoded = this.passwordEncoder.encode(password);
         user.setPassword(passwordEncoded);
+        emailService.sendEmail(
+                user.getEmail(),
+                "Test",
+                "Test"
+        );
         return userRepository.save(user);
     }
 
